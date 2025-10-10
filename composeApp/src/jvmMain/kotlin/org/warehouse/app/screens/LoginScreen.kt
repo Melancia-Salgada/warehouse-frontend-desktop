@@ -1,7 +1,10 @@
 package org.warehouse.app.screens
 
+import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -9,8 +12,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -18,16 +27,46 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
+import kotlinx.coroutines.launch
+import org.warehouse.app.components.ButtonType
+import org.warehouse.app.components.StyledButton
+import org.warehouse.app.components.StyledPasswordField
+import org.warehouse.app.components.StyledTextField
 
 @Composable
+@Preview
 fun LoginScreen() {
     var email by remember { mutableStateOf("") }
     var senha by remember { mutableStateOf("") }
     var lembrar by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    var windowW by remember { mutableStateOf(0) }
+
+    fun handleLogin() {
+        kotlinx.coroutines.MainScope().launch {
+            kotlinx.coroutines.delay(2000) // simula delay de 2 segundos
+            isLoading = false
+        }
+    }
+
+
+
+    Box(modifier = Modifier.fillMaxSize().onSizeChanged{windowW =it.width}) {
         // Banner lateral (imagem de fundo)
+
+        val density = LocalDensity.current
+        val windowWDP = with(density) {windowW.toDp().value}
+
+        val fontSize = (windowWDP * 0.05f)
+            .coerceIn(32f, 56f)
+            .sp
+
+        val supportFontSize = (windowWDP * 0.02f)
+            .coerceIn(14f, 20f)
+            .sp
+
+
         Image(
             painter = painterResource("img/banner.png"),
             contentDescription = "Banner",
@@ -43,25 +82,38 @@ fun LoginScreen() {
                 .fillMaxHeight()
                 .fillMaxWidth(0.6f)
                 .padding(start = 60.dp, bottom = 24.dp),
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
+
         ) {
             Text(
                 text = "Bem-vindo",
-                fontSize = 48.sp,
+                fontSize = fontSize,
                 fontWeight = FontWeight.Medium,
                 color = Color.Black,
-                lineHeight = 56.sp
+                lineHeight = fontSize * 1.15f
+
             )
-            Text(
-                text = "ao Warehouse!",
-                fontSize = 48.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = Color(0xFF00008F),
-                lineHeight = 56.sp
-            )
+            Row(){
+                Text(
+                    text = "ao",
+                    fontSize = fontSize,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.Black,
+                    lineHeight = fontSize * 1.15f
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Warehouse!",
+                    fontSize = fontSize,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color(0xFF00008F),
+                    lineHeight = fontSize * 1.15f
+                )
+            }
+
             Spacer(Modifier.height(24.dp))
-            Text("A solução para organizar, proteger", fontSize = 20.sp)
-            Text("e gerenciar os dados da sua empresa.", fontSize = 20.sp)
+            Text("A solução para organizar, proteger", fontSize = supportFontSize)
+            Text("e gerenciar os dados da sua empresa.", fontSize = supportFontSize)
         }
 
         // Painel branco (formulário)
@@ -69,7 +121,7 @@ fun LoginScreen() {
             modifier = Modifier
                 .fillMaxHeight()
                 .align(Alignment.CenterEnd)
-                .width(400.dp)
+                .fillMaxWidth(0.4f)
                 .background(Color.White)
                 .padding(40.dp)
         ) {
@@ -81,22 +133,18 @@ fun LoginScreen() {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                OutlinedTextField(
-                    value = email,
+                StyledTextField(value = email,
                     onValueChange = { email = it },
-                    label = { Text("Usuário") },
-                    singleLine = true,
+                    label = "Usuário",
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(Modifier.height(16.dp))
 
-                OutlinedTextField(
+                StyledPasswordField(
                     value = senha,
                     onValueChange = { senha = it },
-                    label = { Text("Senha") },
-                    singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(),
+                    label = "Senha",
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -108,44 +156,55 @@ fun LoginScreen() {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(checked = lembrar, onCheckedChange = { lembrar = it })
-                        Text("Lembre de mim", fontSize = 18.sp)
+                        Checkbox(checked = lembrar, onCheckedChange = { lembrar = it }, modifier = Modifier.pointerHoverIcon(PointerIcon.Hand))
+                        Text("Lembre de mim", fontSize = 16.sp)
                     }
-                    TextButton(onClick = { /* TODO: redefinir senha */ }) {
-                        Text("Redefinir senha", fontSize = 18.sp, color = Color(0xFF005BB1))
-                    }
+                    Text("Redefinir", fontSize = 16.sp, color = Color(0xFF005BB1),
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
+                            .pointerHoverIcon(PointerIcon.Hand)
+                            .background(Color.Transparent)
+                            .padding(horizontal = 4.dp, vertical = 2.dp)
+                            .clickable (indication = null, interactionSource = remember { MutableInteractionSource()}){
+                                //TODO: abrir email
+                        }
+                    )
                 }
 
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(20.dp))
 
-                Button(
-                    onClick = { isLoading = true /* TODO: login */ },
+                StyledButton(
+                    type = ButtonType.BIG,
+                    isLoading = isLoading,
                     enabled = !isLoading,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
+                    onClick = {
+                        isLoading = true
+                        handleLogin()
+                    },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    } else {
-                        Text("Entrar", fontSize = 18.sp)
-                    }
+                    Text("Entrar")
                 }
 
-                Spacer(Modifier.height(24.dp))
+
+                Spacer(Modifier.height(20.dp))
 
                 Text(
                     text = "Ainda não tem o acesso?",
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center
                 )
-                TextButton(onClick = { /* TODO: abrir e-mail */ }) {
-                    Text("Entre em contato", fontSize = 16.sp, color = Color(0xFF005BB1))
-                }
+
+                Text("Entre em contato", fontSize = 14.sp, color = Color(0xFF005BB1),
+                    modifier = Modifier
+                        .pointerHoverIcon(PointerIcon.Hand)
+                        .background(Color.Transparent)
+                        .padding(horizontal = 4.dp, vertical = 2.dp)
+                        .clickable (indication = null, interactionSource = remember { MutableInteractionSource()}){
+                            //TODO: abrir email
+                        }
+                )
+
             }
         }
     }
