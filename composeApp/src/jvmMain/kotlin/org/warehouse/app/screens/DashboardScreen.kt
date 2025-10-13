@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import org.warehouse.app.components.Sidebar
 import org.warehouse.app.context.LocalNavigation
 import org.warehouse.app.screens.pages.HomeScreen
+import org.warehouse.app.screens.pages.UserScreen
 
 @Composable
 fun DashboardScreen() {
@@ -120,7 +121,7 @@ private fun ContentArea(currentRoute: String) {
     ) {
         when (currentRoute) {
             "/dashboard/home" -> HomeScreen()
-            "/dashboard/users" -> HomeScreen()
+            "/dashboard/usuario" -> UserScreen()
             else -> Text("Bem-vindo ao Dashboard!", color = Color.Black)
         }
     }
