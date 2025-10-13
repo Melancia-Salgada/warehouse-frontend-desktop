@@ -32,6 +32,7 @@ import org.warehouse.app.components.ButtonType
 import org.warehouse.app.components.StyledButton
 import org.warehouse.app.components.StyledPasswordField
 import org.warehouse.app.components.StyledTextField
+import org.warehouse.app.context.LocalNavigation
 
 @Composable
 @Preview
@@ -43,10 +44,13 @@ fun LoginScreen() {
 
     var windowW by remember { mutableStateOf(0) }
 
+    val nav = LocalNavigation.current
+
     fun handleLogin() {
         kotlinx.coroutines.MainScope().launch {
             kotlinx.coroutines.delay(2000) // simula delay de 2 segundos
             isLoading = false
+            nav.navigate("/dashboard/home")
         }
     }
 
