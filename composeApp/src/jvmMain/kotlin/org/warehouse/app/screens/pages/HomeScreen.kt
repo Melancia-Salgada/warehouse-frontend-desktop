@@ -11,11 +11,5 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun HomeScreen() {
-    Box(modifier = Modifier.fillMaxSize().background(Color.Yellow)) {
-        Text(
-            text = "HOME",
-            color = Color.Black,
-            fontSize = 50.sp
-        )
-    }
+
 }

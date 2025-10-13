@@ -121,20 +121,18 @@ fun Table(
 
         // Modal de visualização
         if (selectedItem != null) {
-            Dialog(onCloseRequest = { selectedItem = null }) {
+            Dialog(
+                onCloseRequest = { selectedItem = null },
+                state = DialogState(size = DpSize(600.dp, 500.dp))
+            ) {
                 VisualizarDialog(
+
                     title = title,
                     item = selectedItem!!,
                     campos = campos,
                     onClose = { selectedItem = null },
-                    onUpdate = {
-                        onUpdate?.invoke(it)
-                        selectedItem = it
-                    },
-                    onDelete = {
-                        onDelete?.invoke(it)
-                        selectedItem = null
-                    }
+                    onUpdate = { onUpdate?.invoke(it) },
+                    onDelete = { onDelete?.invoke(it) }
                 )
             }
         }
@@ -154,15 +152,15 @@ fun VisualizarDialog(
     var confirmDelete by remember { mutableStateOf(false) }
 
     Box(
-        Modifier
-            .fillMaxSize()
+        modifier = Modifier
+            .defaultMinSize(minWidth = 400.dp, minHeight = 300.dp)
     ) {
         Surface(
             modifier = Modifier
                 .fillMaxSize()
 
         ) {
-            Column(modifier = Modifier.background(Color.White).padding(16.dp)) {
+            Column(modifier = Modifier.background(Color(0xFFF5F5F5)).padding(16.dp)) {
                 // Botões no topo direito
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -246,7 +244,8 @@ fun VisualizarDialog(
 
     // Dialogo de edição
     if (editDialogVisible) {
-        Dialog(onCloseRequest = { editDialogVisible = false }) {
+        Dialog(onCloseRequest = { editDialogVisible = false },
+            state = DialogState(size = DpSize(600.dp, 500.dp))) {
             PopupEditarDialog(
                 item = item,
                 campos = campos,
@@ -263,18 +262,19 @@ fun VisualizarDialog(
     if (confirmDelete) {
         Dialog(
             onCloseRequest = { confirmDelete = false },
-            title = "Confirmação de deleção",
+            title = "Confirmação deletar usuário",
             state = DialogState(size = DpSize(400.dp, 200.dp)), // apenas DpSize
             resizable = false
         ) {
         Surface(
-
-                        shape = RoundedCornerShape(8.dp),
+            modifier = Modifier.background(Color(0xFFF4F4F4)),
+                shape = RoundedCornerShape(8.dp),
                 color = Color.White,
-                tonalElevation = 8.dp
+                tonalElevation = 8.dp,
+
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier.background(Color(0xFFF4F4F4)).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Text(
@@ -314,44 +314,77 @@ fun PopupEditarDialog(
     onSave: (Map<String, Any>) -> Unit,
     onClose: () -> Unit
 ) {
-    // Exemplo simples de edição
     var editedItem by remember { mutableStateOf(item.toMutableMap()) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
 
     Surface(
         modifier = Modifier
-            .fillMaxWidth(0.5f)
-            .heightIn(min = 300.dp),
-        tonalElevation = 4.dp,
-        shape = RoundedCornerShape(8.dp)
+            .fillMaxSize()
+            .heightIn(min = 500.dp)
+            .background(Color(0xFFF4F4F4))
+            .background(Color(0xFFF4F4F4))
     ) {
-        Column(modifier = Modifier.padding(24.dp)) {
-            Text("Editar item", style = MaterialTheme.typography.headlineSmall)
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            campos.forEach { campo ->
-                var value by remember { mutableStateOf(editedItem[campo.nome]?.toString() ?: "") }
-                OutlinedTextField(
-                    value = value,
-                    onValueChange = {
-                        value = it
-                        editedItem[campo.nome] = it
-                    },
-                    label = { Text(campo.label) },
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+        Box(modifier = Modifier.background(Color(0xFFF4F4F4)).padding(24.dp)) {
+            Column {
+                Text(
+                    "Editar Registro",
+                    fontSize = 36.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 16.dp)
                 )
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                // Campos
+                campos.forEach { campo ->
+                    var value by remember { mutableStateOf(editedItem[campo.nome]?.toString() ?: "") }
+                    OutlinedTextField(
+                        value = value,
+                        onValueChange = {
+                            value = it
+                            editedItem[campo.nome] = it
+                        },
+                        label = { Text(campo.label) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                    )
+                }
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Button(onClick = { onSave(editedItem) }) { Text("Salvar") }
-                OutlinedButton(onClick = onClose) { Text("Cancelar") }
+                if (errorMessage != null) {
+                    Text(
+                        text = errorMessage!!,
+                        color = Color.Red,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Button(
+                        onClick = {
+                            val emptyField = campos.find { editedItem[it.nome].toString().isBlank() }
+                            if (emptyField != null) {
+                                errorMessage = "O campo \"${emptyField.label}\" não pode estar vazio."
+                                return@Button
+                            }
+                            onSave(editedItem)
+                            onClose()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00002E))
+                    ) {
+                        Text("Salvar", color = Color.White)
+                    }
+
+                    OutlinedButton(onClick = onClose) {
+                        Text("Cancelar")
+                    }
+                }
             }
         }
     }
-}
 
+}

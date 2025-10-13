@@ -68,7 +68,7 @@ fun DashboardScreen() {
                     animationSpec = tween(durationMillis = 300)
                 ),
                 exit = slideOutHorizontally(
-                    targetOffsetX = { -it }, // sai para a esquerda
+                    targetOffsetX = { -it }, // sai esquerda
                     animationSpec = tween(durationMillis = 300)
                 ),
                 modifier = Modifier.align(Alignment.CenterStart)
@@ -87,8 +87,6 @@ fun DashboardScreen() {
                     )
                 }
             }
-
-            // Botão de hambúrguer / fechar
             IconButton(
                 onClick = { sidebarVisible = !sidebarVisible },
                 modifier = Modifier

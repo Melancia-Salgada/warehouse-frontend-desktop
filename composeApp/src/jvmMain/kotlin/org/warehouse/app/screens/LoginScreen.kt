@@ -48,9 +48,9 @@ fun LoginScreen() {
 
     fun handleLogin() {
         kotlinx.coroutines.MainScope().launch {
-            kotlinx.coroutines.delay(2000) // simula delay de 2 segundos
+            kotlinx.coroutines.delay(2000)
             isLoading = false
-            nav.navigate("/dashboard/home")
+            nav.navigate("/dashboard/usuario")
         }
     }
 
@@ -80,7 +80,7 @@ fun LoginScreen() {
             contentScale = ContentScale.Crop
         )
 
-        // Conteúdo sobre o banner
+        // Conteudo o banner
         Column(
             modifier = Modifier
                 .fillMaxHeight()
@@ -120,7 +120,7 @@ fun LoginScreen() {
             Text("e gerenciar os dados da sua empresa.", fontSize = supportFontSize)
         }
 
-        // Painel branco (formulário)
+        //formulario
         Box(
             modifier = Modifier
                 .fillMaxHeight()

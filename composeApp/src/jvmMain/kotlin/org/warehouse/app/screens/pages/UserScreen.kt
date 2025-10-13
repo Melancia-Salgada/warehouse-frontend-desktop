@@ -13,18 +13,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import org.warehouse.app.components.Campo
+import org.warehouse.app.components.NovoButton
 import org.warehouse.app.components.Table
 
 @Composable
 fun UserScreen() {
-    // Campos da tabela
+
     val campos = listOf(
         Campo("name", "Nome"),
         Campo("email", "Email"),
         Campo("typeAccess", "Tipo")
     )
 
-    // Estado principal
+
     var searchTerm by remember { mutableStateOf("") }
     var items by remember { mutableStateOf(
         listOf(
@@ -38,7 +39,7 @@ fun UserScreen() {
 
     var showDialog by remember { mutableStateOf(false) }
 
-    // Filtragem
+
     val filteredItems = items.filter { item ->
         val id = item["id"]?.toString()?.lowercase() ?: ""
         val name = item["name"]?.toString()?.lowercase() ?: ""
@@ -63,7 +64,7 @@ fun UserScreen() {
                 .padding(bottom = 16.dp)
         )
 
-        // Cabeçalho com título e botão "Novo"
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -74,12 +75,12 @@ fun UserScreen() {
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
             )
 
-            Button(
-                onClick = { showDialog = true },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00002E))
-            ) {
-                Text("Novo Usuário", color = Color.White)
-            }
+            NovoButton(
+                campos = campos,
+                onSave = { data ->
+                    println("Dados salvos: $data")
+                }
+            )
         }
 
         Spacer(Modifier.height(16.dp))
