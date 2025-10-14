@@ -1,5 +1,6 @@
 package org.warehouse.app.components
 
+import StyledDropdown
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -13,6 +14,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -24,6 +27,12 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogState
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.window.WindowSize
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.warehouse.app.network.ApiContext
+import kotlin.collections.set
 
 data class Campo(
     val nome: String,
@@ -104,7 +113,7 @@ fun Table(
                     ) {
                         Button(
                             onClick = { selectedItem = item },
-                            modifier = Modifier.height(38.dp),
+                            modifier = Modifier.height(38.dp).pointerHoverIcon(PointerIcon.Hand),
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00002E)),
                             shape = MaterialTheme.shapes.small,
                             contentPadding = PaddingValues(8.dp)
@@ -123,7 +132,8 @@ fun Table(
         if (selectedItem != null) {
             Dialog(
                 onCloseRequest = { selectedItem = null },
-                state = DialogState(size = DpSize(600.dp, 500.dp))
+                state = DialogState(size = DpSize(600.dp, 550.dp)),
+                title = "Detalhar Info"
             ) {
                 VisualizarDialog(
 
@@ -131,8 +141,12 @@ fun Table(
                     item = selectedItem!!,
                     campos = campos,
                     onClose = { selectedItem = null },
-                    onUpdate = { onUpdate?.invoke(it) },
+                    onUpdate = { updatedItem ->
+                        onUpdate?.invoke(updatedItem)
+                        selectedItem = updatedItem
+                    },
                     onDelete = { onDelete?.invoke(it) }
+
                 )
             }
         }
@@ -187,7 +201,8 @@ fun VisualizarDialog(
                                 .pointerMoveFilter(
                                     onEnter = { true; false },
                                     onExit = { false; false }
-                                ),
+                                )
+                                .pointerHoverIcon(PointerIcon.Hand),
                         ) {
                             Icon(
                                 painterResource("icons/trashIcon.svg"),
@@ -208,6 +223,7 @@ fun VisualizarDialog(
                                     color = Color(0xFF00002E),
                                     shape = RoundedCornerShape(5.dp)
                                 )
+                                .pointerHoverIcon(PointerIcon.Hand)
                         ) {
                             Icon(
                                 painterResource("icons/pencilIcon.svg"),
@@ -242,14 +258,16 @@ fun VisualizarDialog(
         }
     }
 
-    // Dialogo de edição
+    // edita
     if (editDialogVisible) {
         Dialog(onCloseRequest = { editDialogVisible = false },
-            state = DialogState(size = DpSize(600.dp, 500.dp))) {
+            state = DialogState(size = DpSize(600.dp, 550.dp)),
+            title= "Editar Registro"
+            ) {
             PopupEditarDialog(
                 item = item,
                 campos = campos,
-                onSave = {
+                onUpdate = {
                     onUpdate(it)
                     editDialogVisible = false
                 },
@@ -258,12 +276,12 @@ fun VisualizarDialog(
         }
     }
 
-    // Confirmação de deleção
+    //  deleta
     if (confirmDelete) {
         Dialog(
             onCloseRequest = { confirmDelete = false },
             title = "Confirmação deletar usuário",
-            state = DialogState(size = DpSize(400.dp, 200.dp)), // apenas DpSize
+            state = DialogState(size = DpSize(400.dp, 200.dp)),
             resizable = false
         ) {
         Surface(
@@ -289,15 +307,15 @@ fun VisualizarDialog(
                         horizontalArrangement = Arrangement.End
                     ) {
                         TextButton(onClick = { confirmDelete = false }) {
-                            Text("Cancelar")
+                            Text("Cancelar",  color = Color(0xFF00008F), modifier = Modifier.pointerHoverIcon(PointerIcon.Hand))
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         TextButton(onClick = {
                             onDelete(item)
                             confirmDelete = false
                             onClose()
-                        }) {
-                            Text("Sim, deletar!")
+                        }, modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)) {
+                            Text("Sim, deletar!",color = Color(0xFF00008F))
                         }
                     }
                 }
@@ -311,7 +329,7 @@ fun VisualizarDialog(
 fun PopupEditarDialog(
     item: Map<String, Any>,
     campos: List<Campo>,
-    onSave: (Map<String, Any>) -> Unit,
+    onUpdate: (Map<String, Any>) -> Unit,
     onClose: () -> Unit
 ) {
     var editedItem by remember { mutableStateOf(item.toMutableMap()) }
@@ -337,17 +355,31 @@ fun PopupEditarDialog(
                 // Campos
                 campos.forEach { campo ->
                     var value by remember { mutableStateOf(editedItem[campo.nome]?.toString() ?: "") }
-                    OutlinedTextField(
-                        value = value,
-                        onValueChange = {
-                            value = it
-                            editedItem[campo.nome] = it
-                        },
-                        label = { Text(campo.label) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp)
-                    )
+
+                    if (campo.nome == "typeAccess") {
+                        StyledDropdown(
+                            options = listOf("USER", "ADMIN"),
+                            initialOption = value,
+                            onOptionSelected = { selected ->
+                                value = selected
+                                editedItem[campo.nome] = selected
+                            },
+                            label = "Tipo de Acesso"
+                        )
+                    } else {
+                        OutlinedTextField(
+                            value = value,
+                            onValueChange = {
+                                value = it
+                                editedItem[campo.nome] = it
+                            },
+                            label = { Text(campo.label) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
+                        )
+                    }
+
                 }
 
                 if (errorMessage != null) {
@@ -371,15 +403,17 @@ fun PopupEditarDialog(
                                 errorMessage = "O campo \"${emptyField.label}\" não pode estar vazio."
                                 return@Button
                             }
-                            onSave(editedItem)
+                            onUpdate(editedItem)
                             onClose()
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00002E))
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00002E)),
+                        modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
+
                     ) {
                         Text("Salvar", color = Color.White)
                     }
 
-                    OutlinedButton(onClick = onClose) {
+                    OutlinedButton(onClick = onClose, modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)) {
                         Text("Cancelar")
                     }
                 }

@@ -12,9 +12,14 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.warehouse.app.components.Campo
 import org.warehouse.app.components.NovoButton
 import org.warehouse.app.components.Table
+import org.warehouse.app.model.User
+import org.warehouse.app.network.ApiContext
+
 
 @Composable
 fun UserScreen() {
@@ -25,16 +30,40 @@ fun UserScreen() {
         Campo("typeAccess", "Tipo")
     )
 
+    val camposCriar = listOf(
+        Campo("name", "Nome"),
+        Campo("email", "Email"),
+        Campo("typeAccess", "Tipo"),
+        Campo("password", "Senha")
+    )
+
 
     var searchTerm by remember { mutableStateOf("") }
-    var items by remember { mutableStateOf(
-        listOf(
-            mapOf("id" to 1, "name" to "Gabriel Almeida", "email" to "gabriel@email.com", "typeAccess" to "Admin"),
-            mapOf("id" to 2, "name" to "João Pedro", "email" to "joao@email.com", "typeAccess" to "User"),
-            mapOf("id" to 3, "name" to "Natália Lee", "email" to "natalia@email.com", "typeAccess" to "User"),
-            mapOf("id" to 4, "name" to "Leonardo Queiroz", "email" to "leonardo@email.com", "typeAccess" to "Admin")
-        )
-    ) }
+    var items by remember { mutableStateOf<List<Map<String, Any>>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(Unit) {
+        try {
+            println("Buscando usuários...")
+            val users = ApiContext.getUsers()
+            println("Usuários recebidos: $users")
+            items = users.map { user ->
+                mapOf<String, Any>(
+                    "id" to (user.id ?: 0),
+                    "name" to (user.name ?: ""),
+                    "email" to (user.email ?: ""),
+                    "typeAccess" to (user.typeAccess ?: "")
+                )
+            }
+            isLoading = false
+        } catch (e: Exception) {
+            e.printStackTrace()
+            errorMessage = "Erro ao carregar usuários: ${e.message}"
+            isLoading = false
+        }
+    }
+
 
 
     var showDialog by remember { mutableStateOf(false) }
@@ -54,7 +83,7 @@ fun UserScreen() {
             .background(Color(0xFFF4F4F4))
             .padding(24.dp)
     ) {
-        // Campo de busca
+        // busca
         OutlinedTextField(
             value = searchTerm,
             onValueChange = { searchTerm = it },
@@ -76,84 +105,89 @@ fun UserScreen() {
             )
 
             NovoButton(
-                campos = campos,
-                onSave = { data ->
-                    println("Dados salvos: $data")
+                campos = camposCriar,
+                onSave = { novoUsuario ->
+                    kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+                        try {
+                            val user = org.warehouse.app.model.User(
+                                name = novoUsuario["name"].toString(),
+                                email = novoUsuario["email"].toString(),
+                                password = novoUsuario["password"].toString(),
+                                typeAccess = novoUsuario["typeAccess"].toString()
+                            )
+
+
+                            val created = ApiContext.createUser(user)
+
+                            withContext(kotlinx.coroutines.Dispatchers.Main) {
+                                items = items + mapOf<String, Any>(
+                                    "id" to (created.id ?: 0),
+                                    "name" to (created.name ?: ""),
+                                    "email" to (created.email ?: ""),
+                                    "typeAccess" to (created.typeAccess ?: "")
+                                )
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            withContext(kotlinx.coroutines.Dispatchers.Main) {
+                                println("Erro ao criar usuário: ${e.message}")
+                            }
+                        }
+                    }
                 }
             )
         }
 
         Spacer(Modifier.height(16.dp))
 
-        // Lista de usuários
+        // Lista
         Table(
             title = "Detalhes do Usuário",
             campos = campos,
             itens = filteredItems,
-            onUpdate = { updated ->
+            onUpdate = { updatedItem ->
+                kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+                    try {
+                        val id = (updatedItem["id"] as? Int) ?: return@launch
 
+                        val updatedUser = User(
+                            id = id,
+                            name = updatedItem["name"]?.toString() ?: "",
+                            email = updatedItem["email"]?.toString() ?: "",
+                            password = updatedItem["password"]?.toString() ?: "",
+                            typeAccess = updatedItem["typeAccess"]?.toString() ?: ""
+                        )
+
+                        ApiContext.updateUser(id, updatedUser)
+
+                        withContext(kotlinx.coroutines.Dispatchers.Main) {
+                            items = items.map {
+                                if (it["id"] == id) {
+                                    updatedItem.mapValues { entry -> entry.value ?: "" }
+                                } else it
+                            }
+                        }
+
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
             },
-            onDelete = { toDelete ->
-                items = items.filterNot { it["id"] == toDelete["id"] }
+            onDelete = { deletedItem ->
+                kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+                    try {
+                        val id = (deletedItem["id"] as? Int) ?: return@launch
+                        ApiContext.deleteUser(id)
+
+                        withContext(kotlinx.coroutines.Dispatchers.Main) {
+                            items = items.filterNot { it["id"] == id }
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
             }
         )
 
-        // Modal para criar novo usuário
-
-    }
-}
-
-@Composable
-fun NovoUsuarioDialog(
-    onSave: (Map<String, String>) -> Unit,
-    onClose: () -> Unit
-) {
-    var name by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var typeAccess by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-
-    Surface(
-        modifier = Modifier.padding(16.dp),
-        tonalElevation = 4.dp,
-        shape = MaterialTheme.shapes.medium
-    ) {
-        Column(modifier = Modifier.padding(24.dp)) {
-            Text("Novo Usuário", style = MaterialTheme.typography.headlineSmall)
-            Spacer(Modifier.height(16.dp))
-
-            OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Nome") })
-            Spacer(Modifier.height(8.dp))
-            OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Email") })
-            Spacer(Modifier.height(8.dp))
-            OutlinedTextField(value = typeAccess, onValueChange = { typeAccess = it }, label = { Text("Tipo de Acesso") })
-            Spacer(Modifier.height(8.dp))
-            OutlinedTextField(value = password, onValueChange = { password = it }, label = { Text("Senha") })
-            Spacer(Modifier.height(24.dp))
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Button(
-                    onClick = {
-                        onSave(
-                            mapOf(
-                                "name" to name,
-                                "email" to email,
-                                "typeAccess" to typeAccess,
-                                "password" to password
-                            )
-                        )
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00002E))
-                ) {
-                    Text("Salvar")
-                }
-                OutlinedButton(onClick = onClose) {
-                    Text("Cancelar")
-                }
-            }
-        }
     }
 }

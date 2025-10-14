@@ -29,7 +29,7 @@ import warehousedesktop.composeapp.generated.resources.compose_multiplatform
 
 @Composable
 fun App() {
-    var currentRoute by remember { mutableStateOf("/dashboard/home") }
+    var currentRoute by remember { mutableStateOf("/") }
 
     CompositionLocalProvider(
         LocalNavigation provides NavigationState(

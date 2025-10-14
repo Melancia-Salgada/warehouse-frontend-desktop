@@ -19,6 +19,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -40,11 +42,6 @@ fun DashboardScreen() {
     val isSmallScreen = windowHeightDp < 900.dp
     var sidebarVisible by remember { mutableStateOf(false) }
 
-    println(currentRoute)
-
-
-    println(currentRoute)
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -64,7 +61,7 @@ fun DashboardScreen() {
             AnimatedVisibility(
                 visible = sidebarVisible,
                 enter = slideInHorizontally(
-                    initialOffsetX = { -it }, // entra da esquerda
+                    initialOffsetX = { -it }, // entra  esquerda
                     animationSpec = tween(durationMillis = 300)
                 ),
                 exit = slideOutHorizontally(
@@ -94,6 +91,7 @@ fun DashboardScreen() {
                     .size(40.dp)
                     .align(Alignment.TopStart)
                     .background(Color(0xFF00002E), shape = MaterialTheme.shapes.small)
+                    .pointerHoverIcon(PointerIcon.Hand)
             ) {
                 Icon(
                     painter = painterResource(

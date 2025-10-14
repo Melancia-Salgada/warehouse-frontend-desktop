@@ -1,5 +1,6 @@
 package org.warehouse.app.components
 
+import StyledDropdown
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.TweenSpec
 import androidx.compose.foundation.background
@@ -11,6 +12,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,7 +40,8 @@ fun NovoButton(
         modifier = Modifier
             .animateContentSize(animationSpec = TweenSpec(durationMillis = 300))
             .padding(8.dp)
-            .height(48.dp),
+            .height(48.dp)
+            .pointerHoverIcon(PointerIcon.Hand),
         colors = ButtonDefaults.buttonColors(containerColor = if (hovered) Color(0xFFFFB84D) else Color(0xFFFAA72C)),
         shape = RoundedCornerShape(8.dp)
     ) {
@@ -85,11 +89,14 @@ fun PopupNovoDialog(
     var formData by remember {
         mutableStateOf(campos.associate { it.nome to "" }.toMutableMap())
     }
+    var selected by remember { mutableStateOf("USER") }
+    val options = listOf("USER", "ADMIN")
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Dialog(
         onCloseRequest = { onClose() },
-        state = DialogState(size = DpSize(600.dp, 500.dp)),
+        state = DialogState(size = DpSize(600.dp, 600.dp)),
+        title = "Novo"
     ) {
         Surface(
             modifier = Modifier
@@ -109,19 +116,31 @@ fun PopupNovoDialog(
 
                     // Campos
                     campos.forEach { campo ->
-                        var value by remember { mutableStateOf(formData[campo.nome] ?: "") }
+                        var value by remember { mutableStateOf(formData[campo.nome] ?: if (campo.nome == "typeAccess") "USER" else "") }
 
-                        OutlinedTextField(
-                            value = value,
-                            onValueChange = {
-                                value = it
-                                formData[campo.nome] = it
-                            },
-                            label = { Text(campo.label) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp)
-                        )
+                        if (campo.nome == "typeAccess") {
+                            StyledDropdown(
+                                options = listOf("USER", "ADMIN"),
+                                initialOption = "Selecione uma opção", // valor inicial
+                                onOptionSelected = { selected ->
+                                    value = selected
+                                    formData[campo.nome] = selected
+                                },
+                                label = "Tipo de Acesso"
+                            )
+                        } else {
+                            OutlinedTextField(
+                                value = value,
+                                onValueChange = {
+                                    value = it
+                                    formData[campo.nome] = it
+                                },
+                                label = { Text(campo.label) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
+                            )
+                        }
                     }
 
                     if (errorMessage != null) {
@@ -145,16 +164,26 @@ fun PopupNovoDialog(
                                     errorMessage = "O campo \"${emptyField.key}\" não pode estar vazio."
                                     return@Button
                                 }
+
+                                val email = formData["email"]
+                                if (email != null) {
+                                    val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]$")
+                                    if (!emailRegex.matches(email)) {
+                                        errorMessage = "Por favor, insira um e-mail válido."
+                                        return@Button
+                                    }
+                                }
+
                                 onSave(formData)
                                 onClose()
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00002E))
                         ) {
-                            Text("Criar", color = Color.White)
+                            Text("Criar", color = Color.White, modifier = Modifier.pointerHoverIcon(PointerIcon.Hand))
                         }
 
                         OutlinedButton(onClick = onClose) {
-                            Text("Cancelar")
+                            Text("Cancelar", modifier = Modifier.pointerHoverIcon(PointerIcon.Hand))
                         }
                     }
                 }

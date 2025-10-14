@@ -12,27 +12,24 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
-import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import org.warehouse.app.components.ButtonType
 import org.warehouse.app.components.StyledButton
 import org.warehouse.app.components.StyledPasswordField
 import org.warehouse.app.components.StyledTextField
 import org.warehouse.app.context.LocalNavigation
+import org.warehouse.app.network.ApiContext
 
 @Composable
 @Preview
@@ -48,13 +45,16 @@ fun LoginScreen() {
 
     fun handleLogin() {
         kotlinx.coroutines.MainScope().launch {
-            kotlinx.coroutines.delay(2000)
+            isLoading = true
+            val success = ApiContext.login(email, senha)
             isLoading = false
-            nav.navigate("/dashboard/usuario")
+            if (success) {
+                nav.navigate("/dashboard/usuario")
+            } else {
+                println("Usuário ou senha inválidos")
+            }
         }
     }
-
-
 
     Box(modifier = Modifier.fillMaxSize().onSizeChanged{windowW =it.width}) {
         // Banner lateral (imagem de fundo)
