@@ -27,6 +27,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import org.warehouse.app.components.Sidebar
 import org.warehouse.app.context.LocalNavigation
+import org.warehouse.app.screens.pages.FornecedorScreen
 import org.warehouse.app.screens.pages.HomeScreen
 import org.warehouse.app.screens.pages.UserScreen
 
@@ -118,6 +119,7 @@ private fun ContentArea(currentRoute: String) {
         when (currentRoute) {
             "/dashboard/home" -> HomeScreen()
             "/dashboard/usuario" -> UserScreen()
+            "/dashboard/fornecedor" -> FornecedorScreen()
             else -> Text("Bem-vindo ao Dashboard!", color = Color.Black)
         }
     }

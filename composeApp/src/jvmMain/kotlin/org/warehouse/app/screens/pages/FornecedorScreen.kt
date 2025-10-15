@@ -2,52 +2,51 @@ package org.warehouse.app.screens.pages
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.warehouse.app.components.Campo
 import org.warehouse.app.components.NovoButton
 import org.warehouse.app.components.Table
-import org.warehouse.app.model.User
+import org.warehouse.app.model.Fornecedor
 import org.warehouse.app.network.ApiContext
 
-
 @Composable
-fun UserScreen() {
+fun FornecedorScreen() {
 
     val camposList = listOf(
-        Campo("name", "Nome"),
+        Campo("nome", "Nome"),
+        Campo("telefone", "Telefone"),
         Campo("email", "Email"),
-        Campo("typeAccess", "Tipo")
+        Campo("cnpj", "CNPJ")
     )
 
     val camposVisu = listOf(
         Campo("id", "ID"),
-        Campo("name", "Nome"),
+        Campo("nome", "Nome"),
+        Campo("telefone", "Telefone"),
         Campo("email", "Email"),
-        Campo("typeAccess", "Tipo")
+        Campo("cnpj", "CNPJ")
     )
 
     val camposEdit = listOf(
-        Campo("name", "Nome"),
+        Campo("nome", "Nome"),
+        Campo("telefone", "Telefone"),
         Campo("email", "Email"),
-        Campo("typeAccess", "Tipo")
+        Campo("cnpj", "CNPJ")
     )
 
     val camposCriar = listOf(
-        Campo("name", "Nome"),
+        Campo("nome", "Nome"),
+        Campo("telefone", "Telefone"),
         Campo("email", "Email"),
-        Campo("typeAccess", "Tipo"),
-        Campo("password", "Senha")
+        Campo("cnpj", "CNPJ")
     )
 
 
@@ -58,36 +57,38 @@ fun UserScreen() {
 
     LaunchedEffect(Unit) {
         try {
-            println("Buscando usuários...")
-            val users = ApiContext.getUsers()
-            println("Usuários recebidos: $users")
-            items = users.map { user ->
+            println("Buscando fornecedores...")
+            val fornecedores = ApiContext.getFornecedores()
+            println("Fornecedores recebidos: $fornecedores")
+
+            items = fornecedores.map { fornecedor ->
                 mapOf<String, Any>(
-                    "id" to (user.id ?: 0),
-                    "name" to (user.name ?: ""),
-                    "email" to (user.email ?: ""),
-                    "typeAccess" to (user.typeAccess ?: "")
+                    "id" to (fornecedor.id ?: 0),
+                    "nome" to (fornecedor.nome ?: ""),
+                    "telefone" to (fornecedor.telefone ?: ""),
+                    "email" to (fornecedor.email ?: ""),
+                    "cnpj" to (fornecedor.cnpj ?: "")
                 )
             }
             isLoading = false
         } catch (e: Exception) {
             e.printStackTrace()
-            errorMessage = "Erro ao carregar usuários: ${e.message}"
+            errorMessage = "Erro ao carregar fornecedores: ${e.message}"
             isLoading = false
         }
     }
 
-
-
-    var showDialog by remember { mutableStateOf(false) }
-
-
     val filteredItems = items.filter { item ->
         val id = item["id"]?.toString()?.lowercase() ?: ""
-        val name = item["name"]?.toString()?.lowercase() ?: ""
+        val nome = item["nome"]?.toString()?.lowercase() ?: ""
         val email = item["email"]?.toString()?.lowercase() ?: ""
-        val typeAccess = item["typeAccess"]?.toString()?.lowercase() ?: ""
-        searchTerm.lowercase() in id || searchTerm.lowercase() in name || searchTerm.lowercase() in email || searchTerm.lowercase() in typeAccess
+        val cnpj = item["cnpj"]?.toString()?.lowercase() ?: ""
+        val telefone = item["telefone"]?.toString()?.lowercase() ?: ""
+        searchTerm.lowercase() in id ||
+                searchTerm.lowercase() in nome ||
+                searchTerm.lowercase() in email ||
+                searchTerm.lowercase() in cnpj ||
+                searchTerm.lowercase() in telefone
     }
 
     Column(
@@ -96,54 +97,55 @@ fun UserScreen() {
             .background(Color(0xFFF4F4F4))
             .padding(24.dp)
     ) {
-        // busca
+        // Campo de busca
         OutlinedTextField(
             value = searchTerm,
             onValueChange = { searchTerm = it },
-            label = { Text("Pesquisar usuário...") },
+            label = { Text("Pesquisar fornecedor...") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp)
         )
 
-
+        // Cabeçalho + botão de novo
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Usuários",
+                text = "Fornecedores",
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
             )
 
             NovoButton(
                 campos = camposCriar,
-                onSave = { novoUsuario ->
+                onSave = { novoFornecedor ->
                     kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
                         try {
-                            val user = org.warehouse.app.model.User(
-                                name = novoUsuario["name"].toString(),
-                                email = novoUsuario["email"].toString(),
-                                password = novoUsuario["password"].toString(),
-                                typeAccess = novoUsuario["typeAccess"].toString()
+                            val fornecedor = Fornecedor(
+                                nome = novoFornecedor["nome"].toString(),
+                                telefone = novoFornecedor["telefone"].toString(),
+                                email = novoFornecedor["email"].toString(),
+                                cnpj = novoFornecedor["cnpj"].toString(),
+                                dataCriacao = ""
                             )
 
-
-                            val created = ApiContext.createUser(user)
+                            val created = ApiContext.createFornecedor(fornecedor)
 
                             withContext(kotlinx.coroutines.Dispatchers.Main) {
                                 items = items + mapOf<String, Any>(
                                     "id" to (created.id ?: 0),
-                                    "name" to (created.name ?: ""),
+                                    "nome" to (created.nome ?: ""),
+                                    "telefone" to (created.telefone ?: ""),
                                     "email" to (created.email ?: ""),
-                                    "typeAccess" to (created.typeAccess ?: "")
+                                    "cnpj" to (created.cnpj ?: "")
                                 )
                             }
                         } catch (e: Exception) {
                             e.printStackTrace()
                             withContext(kotlinx.coroutines.Dispatchers.Main) {
-                                println("Erro ao criar usuário: ${e.message}")
+                                println("Erro ao criar fornecedor: ${e.message}")
                             }
                         }
                     }
@@ -153,27 +155,28 @@ fun UserScreen() {
 
         Spacer(Modifier.height(16.dp))
 
-        // Lista
+        // Tabela
         Table(
-            title = "Detalhes do Usuário",
-            camposList = camposList,
+            title = "Detalhes do Fornecedor",
             camposVisu = camposVisu,
             camposEdit = camposEdit,
+            camposList = camposList,
             itens = filteredItems,
             onUpdate = { updatedItem ->
                 kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
                     try {
                         val id = (updatedItem["id"] as? Int) ?: return@launch
 
-                        val updatedUser = User(
+                        val updatedFornecedor = Fornecedor(
                             id = id,
-                            name = updatedItem["name"]?.toString() ?: "",
+                            nome = updatedItem["nome"]?.toString() ?: "",
+                            telefone = updatedItem["telefone"]?.toString() ?: "",
                             email = updatedItem["email"]?.toString() ?: "",
-                            password = updatedItem["password"]?.toString() ?: "",
-                            typeAccess = updatedItem["typeAccess"]?.toString() ?: ""
+                            cnpj = updatedItem["cnpj"]?.toString() ?: "",
+                            dataCriacao = ""
                         )
 
-                        ApiContext.updateUser(id, updatedUser)
+                        ApiContext.updateFornecedor(id, updatedFornecedor)
 
                         withContext(kotlinx.coroutines.Dispatchers.Main) {
                             items = items.map {
@@ -192,7 +195,7 @@ fun UserScreen() {
                 kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
                     try {
                         val id = (deletedItem["id"] as? Int) ?: return@launch
-                        ApiContext.deleteUser(id)
+                        ApiContext.deleteFornecedor(id)
 
                         withContext(kotlinx.coroutines.Dispatchers.Main) {
                             items = items.filterNot { it["id"] == id }
@@ -203,6 +206,5 @@ fun UserScreen() {
                 }
             }
         )
-
     }
 }

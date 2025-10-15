@@ -43,7 +43,9 @@ data class Campo(
 @Composable
 fun Table(
     title: String,
-    campos: List<Campo>,
+    camposList: List<Campo>,
+    camposVisu: List<Campo>,
+    camposEdit: List<Campo>,
     itens: List<Map<String, Any>>,
     onUpdate: ((Map<String, Any?>) -> Unit)? = null,
     onDelete: ((Map<String, Any?>) -> Unit)? = null
@@ -60,7 +62,6 @@ fun Table(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
         ) {
             // Cabeçalho fixo
             Row(
@@ -69,7 +70,7 @@ fun Table(
                     .background(Color.White)
                     .padding(vertical = 12.dp, horizontal = 38.dp)
             ) {
-                campos.forEach { campo ->
+                camposList.forEach { campo ->
                     Text(
                         text = campo.label,
                         modifier = Modifier.weight(1f),
@@ -88,44 +89,49 @@ fun Table(
                 )
             }
 
-            // Linhas da lista
-            itens.forEach { item ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .border(0.5.dp, Color(0xFF878787))
-                        .padding(vertical = 12.dp, horizontal = 38.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    campos.forEach { campo ->
-                        Text(
-                            text = item[campo.nome]?.toString() ?: "",
-                            modifier = Modifier.weight(1f),
-                            fontSize = 18.sp,
-                            color = Color.Black
-                        )
-                    }
-
-                    Box(
+            Column(modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())) {
+                // Linhas da lista
+                itens.forEach { item ->
+                    Row(
                         modifier = Modifier
-                            .weight(1f),
-                        contentAlignment = Alignment.CenterEnd
+                            .fillMaxWidth()
+                            .border(0.5.dp, Color(0xFF878787))
+                            .padding(vertical = 12.dp, horizontal = 38.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Button(
-                            onClick = { selectedItem = item },
-                            modifier = Modifier.height(38.dp).pointerHoverIcon(PointerIcon.Hand),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00002E)),
-                            shape = MaterialTheme.shapes.small,
-                            contentPadding = PaddingValues(8.dp)
-                        ) {
-                            Image(
-                                painter = painterResource("icons/eyeIcon.svg"),
-                                contentDescription = "Visualizar"
+                        camposList.forEach { campo ->
+                            Text(
+                                text = item[campo.nome]?.toString() ?: "",
+                                modifier = Modifier.weight(1f),
+                                fontSize = 18.sp,
+                                color = Color.Black
                             )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .weight(1f),
+                            contentAlignment = Alignment.CenterEnd
+                        ) {
+                            Button(
+                                onClick = { selectedItem = item },
+                                modifier = Modifier.height(38.dp).pointerHoverIcon(PointerIcon.Hand),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00002E)),
+                                shape = MaterialTheme.shapes.small,
+                                contentPadding = PaddingValues(8.dp)
+                            ) {
+                                Image(
+                                    painter = painterResource("icons/eyeIcon.svg"),
+                                    contentDescription = "Visualizar"
+                                )
+                            }
                         }
                     }
                 }
             }
+
         }
 
         // Modal de visualização
@@ -139,7 +145,8 @@ fun Table(
 
                     title = title,
                     item = selectedItem!!,
-                    campos = campos,
+                    camposVisu = camposVisu,
+                    camposEdit = camposEdit,
                     onClose = { selectedItem = null },
                     onUpdate = { updatedItem ->
                         onUpdate?.invoke(updatedItem)
@@ -157,7 +164,8 @@ fun Table(
 fun VisualizarDialog(
     title: String,
     item: Map<String, Any>,
-    campos: List<Campo>,
+    camposVisu: List<Campo>,
+    camposEdit: List<Campo>,
     onClose: () -> Unit,
     onUpdate: (Map<String, Any>) -> Unit,
     onDelete: (Map<String, Any>) -> Unit
@@ -241,7 +249,7 @@ fun VisualizarDialog(
 
 
                 // Campos destacados (como <strong> no React)
-                campos.forEach { campo ->
+                camposVisu.forEach { campo ->
                     Row(modifier = Modifier.padding(vertical = 4.dp)) {
                         Text(
                             "${campo.label}: ",
@@ -266,7 +274,7 @@ fun VisualizarDialog(
             ) {
             PopupEditarDialog(
                 item = item,
-                campos = campos,
+                campos = camposEdit,
                 onUpdate = {
                     onUpdate(it)
                     editDialogVisible = false

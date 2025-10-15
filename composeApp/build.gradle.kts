@@ -50,9 +50,31 @@ compose.desktop {
         mainClass = "org.warehouse.app.MainKt"
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "org.warehouse.app"
+            targetFormats(TargetFormat.Msi, TargetFormat.Dmg, TargetFormat.Deb)
+
+            packageName = "WarehouseApp"
             packageVersion = "1.0.0"
+            description = "Aplicativo de gerenciamento de estoque"
+            copyright = "© 2025"
+
+            windows {
+                iconFile.set(project.file("src/jvmMain/resources/icons/appIcon.ico"))
+                menuGroup = "Warehouse Software"
+                shortcut = true
+                includeAllModules = true
+            }
+
+            // macOS específico
+            macOS {
+                iconFile.set(project.file("src/desktopMain/resources/icons/appIcon.icns"))
+                packageName = "WarehouseApp"
+            }
+
+            // Linux específico
+            linux {
+                iconFile.set(project.file("src/desktopMain/resources/icons/appIcon.png"))
+                packageName = "WarehouseApp"
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 package org.warehouse.app
 
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowState
@@ -9,7 +10,8 @@ import java.awt.Dimension
 fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
-        title = "WarehouseDesktop",
+        title = "Warehouse",
+        icon = painterResource("icons/appIcon.png")
     ) {
         window.minimumSize = Dimension(900, 600)
         App()
