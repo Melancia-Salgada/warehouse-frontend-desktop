@@ -167,7 +167,7 @@ fun PopupNovoDialog(
 
                                 val email = formData["email"]
                                 if (email != null) {
-                                    val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]$")
+                                    val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")
                                     if (!emailRegex.matches(email)) {
                                         errorMessage = "Por favor, insira um e-mail válido."
                                         return@Button

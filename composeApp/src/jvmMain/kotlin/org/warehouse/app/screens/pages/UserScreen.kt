@@ -34,7 +34,9 @@ fun UserScreen() {
         Campo("id", "ID"),
         Campo("name", "Nome"),
         Campo("email", "Email"),
-        Campo("typeAccess", "Tipo")
+        Campo("typeAccess", "Tipo"),
+        Campo("status", "Status"),
+        Campo("dataCriacao", "Data de Criação")
     )
 
     val camposEdit = listOf(
@@ -58,15 +60,15 @@ fun UserScreen() {
 
     LaunchedEffect(Unit) {
         try {
-            println("Buscando usuários...")
             val users = ApiContext.getUsers()
-            println("Usuários recebidos: $users")
             items = users.map { user ->
                 mapOf<String, Any>(
                     "id" to (user.id ?: 0),
                     "name" to (user.name ?: ""),
                     "email" to (user.email ?: ""),
-                    "typeAccess" to (user.typeAccess ?: "")
+                    "typeAccess" to (user.typeAccess ?: ""),
+                    "status" to (user.status ?: false),
+                    "dataCriacao" to (user.dataCriacao ?: "")
                 )
             }
             isLoading = false
@@ -126,8 +128,10 @@ fun UserScreen() {
                                 name = novoUsuario["name"].toString(),
                                 email = novoUsuario["email"].toString(),
                                 password = novoUsuario["password"].toString(),
-                                typeAccess = novoUsuario["typeAccess"].toString()
+                                typeAccess = novoUsuario["typeAccess"].toString(),
+                                status = true
                             )
+
 
 
                             val created = ApiContext.createUser(user)
@@ -137,7 +141,9 @@ fun UserScreen() {
                                     "id" to (created.id ?: 0),
                                     "name" to (created.name ?: ""),
                                     "email" to (created.email ?: ""),
-                                    "typeAccess" to (created.typeAccess ?: "")
+                                    "typeAccess" to (created.typeAccess ?: ""),
+                                    "status" to (created.status ?: false),
+                                    "dataCriacao" to (created.dataCriacao ?: "")
                                 )
                             }
                         } catch (e: Exception) {

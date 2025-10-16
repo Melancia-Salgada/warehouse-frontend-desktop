@@ -9,5 +9,6 @@ data class Fornecedor(
     val cnpj: String? = null,
     val telefone: String? = null,
     val email: String? = null,
-    val dataCriacao: String? = null
+    val dataCriacao: String? = null,
+    val status: Boolean? = null,
 )

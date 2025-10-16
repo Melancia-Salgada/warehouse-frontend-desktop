@@ -32,7 +32,9 @@ fun FornecedorScreen() {
         Campo("nome", "Nome"),
         Campo("telefone", "Telefone"),
         Campo("email", "Email"),
-        Campo("cnpj", "CNPJ")
+        Campo("cnpj", "CNPJ"),
+        Campo("status", "Status"),
+        Campo("dataCriacao", "Data de Criação")
     )
 
     val camposEdit = listOf(
@@ -67,7 +69,9 @@ fun FornecedorScreen() {
                     "nome" to (fornecedor.nome ?: ""),
                     "telefone" to (fornecedor.telefone ?: ""),
                     "email" to (fornecedor.email ?: ""),
-                    "cnpj" to (fornecedor.cnpj ?: "")
+                    "cnpj" to (fornecedor.cnpj ?: ""),
+                    "status" to (fornecedor.status ?: false),
+                    "dataCriacao" to (fornecedor.dataCriacao ?: "")
                 )
             }
             isLoading = false
@@ -128,18 +132,20 @@ fun FornecedorScreen() {
                                 telefone = novoFornecedor["telefone"].toString(),
                                 email = novoFornecedor["email"].toString(),
                                 cnpj = novoFornecedor["cnpj"].toString(),
-                                dataCriacao = ""
+                                status = true
                             )
 
                             val created = ApiContext.createFornecedor(fornecedor)
 
                             withContext(kotlinx.coroutines.Dispatchers.Main) {
                                 items = items + mapOf<String, Any>(
-                                    "id" to (created.id ?: 0),
-                                    "nome" to (created.nome ?: ""),
-                                    "telefone" to (created.telefone ?: ""),
-                                    "email" to (created.email ?: ""),
-                                    "cnpj" to (created.cnpj ?: "")
+                                    "id" to (created?.id ?: 0),
+                                    "nome" to (created?.nome ?: ""),
+                                    "telefone" to (created?.telefone ?: ""),
+                                    "email" to (created?.email ?: ""),
+                                    "cnpj" to (created?.cnpj ?: ""),
+                                    "status" to(created?.status?: true),
+                                    "dataCriacao" to (created.dataCriacao ?: "")
                                 )
                             }
                         } catch (e: Exception) {

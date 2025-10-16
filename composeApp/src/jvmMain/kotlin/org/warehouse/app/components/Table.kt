@@ -102,6 +102,7 @@ fun Table(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         camposList.forEach { campo ->
+
                             Text(
                                 text = item[campo.nome]?.toString() ?: "",
                                 modifier = Modifier.weight(1f),
@@ -248,7 +249,6 @@ fun VisualizarDialog(
 
 
 
-                // Campos destacados (como <strong> no React)
                 camposVisu.forEach { campo ->
                     Row(modifier = Modifier.padding(vertical = 4.dp)) {
                         Text(
@@ -256,12 +256,20 @@ fun VisualizarDialog(
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp
                         )
+                        val valorExibido = if (campo.nome == "status") {
+                            if (item[campo.nome] as Boolean) "Ativo" else "Inativo"
+                        } else {
+                            item[campo.nome]?.toString() ?: ""
+                        }
+
+
                         Text(
-                            item[campo.nome]?.toString() ?: "",
+                            valorExibido,
                             fontSize = 18.sp
                         )
                     }
                 }
+
             }
         }
     }
